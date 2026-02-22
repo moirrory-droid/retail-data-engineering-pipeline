@@ -1,208 +1,153 @@
 # retail-data-engineering-pipeline
 Retail Data Engineering Pipeline
 
-End-to-end ELT pipeline using PostgreSQL (raw → staging → core → marts)
+PostgreSQL ELT pipeline (raw → staging → core → marts)
 
 Overview
 
-This project builds a simple but realistic data engineering pipeline to ingest operational retail data, transform it into a structured warehouse model, and generate business insights around inventory, sales, and stockout risk. The pipeline takes raw CSV data, loads it into PostgreSQL, cleans and standardises it, and produces analytics-ready outputs for decision making.
+This project builds an end-to-end data engineering pipeline that ingests operational retail data, transforms it into a structured warehouse model, and produces business-ready outputs. The goal is to simulate how raw operational data moves through a modern warehouse architecture and becomes reliable, analytics-ready datasets.
 
-Problem Statement
+Objective
 
-Retail operations rely on accurate data to manage:
+Design and implement a reproducible data pipeline that:
 
-product sales
+1. ingests raw source files
+2. standardises and validates data
+3. builds dimensional warehouse models
+4. generates operational insights
 
-inventory levels
-
-stockout risk
-
-replenishment planning
-
-Raw operational exports are often messy and not immediately usable.
-
-This project simulates how a data engineer would:
-
-1. ingest source data
-
-2. standardise and validate it
-
-3. build a warehouse model
-
-4. generate business-ready outputs
+This mirrors the responsibilities of a junior data engineer working with transactional business systems.
 
 Architecture
-
-CSV files
+Source CSVs
    ↓
-RAW schema (landing zone)
+RAW (landing zone)
    ↓
-STAGING schema (cleaned + typed)
+STAGING (clean + typed)
    ↓
-CORE schema (dimensional warehouse)
+CORE (dimensional warehouse)
    ↓
-MARTS schema (analytics + decision support)
+MARTS (analytics outputs)
 
 Tech Stack
+1. PostgreSQL
+2. SQL (data modelling & transformations)
+3. VS Code
+4. Git & GitHub
 
-PostgreSQL
-VS Code
-SQL (data modelling & transformations)
-Git / GitHub
-Data Sources
-CSV files simulating operational 
+Data Pipeline Design
 
-retail systems:
-products
-stores
-suppliers
-orders
-inventory snapshots
-
-Pipeline Stages
-1) Raw Ingestion
-
-Source CSVs are loaded into the raw schema using PostgreSQL \copy.
+Raw Layer
+Stores data exactly as received from source systems.
 
 Purpose:
 
-preserve original source data
+1. preserve original data
+2. allow replayability
+3. enable auditing/debugging
 
-enable reprocessing
+Tables:
 
-maintain traceability
+1. raw.products
+2. raw.stores
+3. raw.suppliers
+4. raw.orders
+5. raw.inventory_snapshots
 
-2) Staging Layer
+Staging Layer
 
-Data is cleaned and standardised:
+Data cleaning and standardisation layer.
 
-whitespace trimmed
+Processes:
 
-blank values converted to NULL
-
-data types cast (TEXT → INT / NUMERIC / DATE)
-
-constraints applied
-
-Purpose:
-
-improve data quality
-
-prepare for warehouse modelling
-
-3) Core Warehouse Model
-
-Dimensional model created using:
-
-Dimensions
-
-dim_product
-
-dim_store
-
-dim_supplier
-
-Facts
-
-fact_order_line
-
-fact_inventory_snapshot
-
-Derived metrics added:
-
-net revenue calculations
-
-relationships between entities
+1. trimming whitespace
+2. handling null values
+3. casting data types
+4. deduplicating records
 
 Purpose:
 
-stable analytics-ready structure
+1. improve data quality
+2. prepare for warehouse modelling
 
-consistent joins
+Core Layer
 
-reliable reporting
+Dimensional warehouse model using fact and dimension tables.
 
-4) Marts Layer (Business Outputs)
+Dimensions:
 
-Views created to support decision-making:
+1. dim_product
+2. dim_store
+3. dim_supplier
 
-Daily Sales Velocity
+Facts:
 
-Average units sold per product/store over last 30 days.
+1. fact_order_line
+2. fact_inventory_snapshot
 
-Used for:
+Includes:
 
-demand estimation
+1. relationships between entities
+2. calculated metrics (net revenue)
 
-inventory planning
+Purpose:
+
+1. provide stable, analytics-ready datasets
+2. support scalable joins and reporting
+
+Marts Layer
+
+Business-focused analytical outputs built from core tables.
+
+Views created:
+
+1. Daily Sales Velocity
+2. Average units sold per store/product over the last 30 days.
 
 Stockout Risk
 
-Calculates "days of cover":
+1. Calculates inventory “days of cover”.
+2. Reorder Recommendations
+3. Generates suggested replenishment quantities using demand and stock levels.
 
-on_hand_qty / avg_daily_units
+Purpose:
 
-Used for:
+1. convert warehouse data into decision-support outputs
+2. separate business logic from raw transformations
 
-identifying potential stock shortages
+Engineering Practices Applied
 
-Reorder Recommendations
+1. layered schema design (raw → staging → core → marts)
+2. ELT transformation pattern
+3. idempotent SQL pipelines
+4. upserts using ON CONFLICT DO UPDATE
+5. data quality handling with casting and constraints
+6. dimensional modelling (facts & dimensions)
 
-Simple business rule:
+Example Output Queries
 
-If days_of_cover < 7 → suggest replenishment
+SELECT * FROM marts.reorder_recommendations ORDER BY reorder_qty DESC LIMIT 20; SELECT * FROM marts.stockout_risk ORDER BY days_of_cover ASC;
 
-Used for:
+What This Project Demonstrates
 
-operational decision support
+1. building structured data pipelines
+2. transforming messy source data into warehouse models
+3. implementing repeatable SQL workflows
+4. modelling operational business entities
+5. producing decision-ready datasets
 
-Key Engineering Concepts Used
+Next Steps / Improvements
 
-ELT pipeline design
-
-schema layering (raw → staging → core → marts)
-
-dimensional modelling (facts & dimensions)
-
-idempotent transformations
-
-upserts using ON CONFLICT DO UPDATE
-
-data quality handling with casting & validation
-
-Example Queries
-
-Top stockout risk products
-
-SELECT * FROM marts.stockout_risk ORDER BY days_of_cover ASC LIMIT 20;
-
-Products requiring replenishment
-
-SELECT * FROM marts.reorder_recommendations WHERE reorder_qty > 0 ORDER BY reorder_qty DESC;
-
-Learning Outcomes
-
-This project helped me understand:
-
-1. how raw operational data becomes analytics-ready
-2. when to use staging vs core models
-3. how to structure warehouse schemas
-4. safe incremental loading using upserts
-5. how SQL supports business decision logic
-
-Next Improvements
-
-Planned enhancements:
-
-1. automate ingestion with Python
-2. schedule pipeline execution
-3. add supplier lead-time into reorder logic
-4. build dashboard layer
+1. automate ingestion using Python
+2. introduce scheduling/orchestration
+3. integrate supplier lead-time into replenishment logic
+4. containerise database environment
+5. add monitoring & validation checks
 
 Author
 
 Rory Moir
-Transitioning into data engineering with a focus on building practical, business-oriented data pipelines.
+Transitioning into data engineering, building practical pipelines focused on real operational use cases.
 
 <img width="1552" height="902" alt="Screenshot 2026-02-22 at 21 35 34" src="https://github.com/user-attachments/assets/f22e008a-0f22-4da1-b0dc-67e3db782c37" />
 
